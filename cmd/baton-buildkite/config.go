@@ -9,7 +9,18 @@ var (
 	// ConfigurationFields defines the external configuration required for the
 	// connector to run. Note: these fields can be marked as optional or
 	// required.
-	ConfigurationFields = []field.SchemaField{}
+	ConfigurationFields = []field.SchemaField{
+		field.StringField(
+			"buildkite-api-token",
+			field.WithDescription("The API token for the Buildkite organization."),
+			field.WithRequired(true),
+		),
+		field.StringField(
+			"buildkite-organization",
+			field.WithDescription("The Buildkite organization name."),
+			field.WithRequired(true),
+		),
+	}
 
 	// FieldRelationships defines relationships between the fields listed in
 	// ConfigurationFields that can be automatically validated. For example, a

@@ -4,17 +4,22 @@ import (
 	"context"
 	"io"
 
+	"github.com/conductorone/baton-buildkite/pkg/client"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/annotations"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
+	"golang.org/x/oauth2"
 )
 
-type Connector struct{}
+type Connector struct {
+	client client.Client
+	org    string
+}
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
 func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
 	return []connectorbuilder.ResourceSyncer{
-		newUserBuilder(),
+		newUserBuilder(d.client, d.org),
 	}
 }
 
@@ -35,10 +40,24 @@ func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error)
 // Validate is called to ensure that the connector is properly configured. It should exercise any API credentials
 // to be sure that they are valid.
 func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, error) {
+	_, err := d.client.GetInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context) (*Connector, error) {
-	return &Connector{}, nil
+func New(ctx context.Context, org string, apiToken string) (*Connector, error) {
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: apiToken,
+	})
+	c, err := client.New(ctx, ts)
+	if err != nil {
+		return nil, err
+	}
+	return &Connector{
+		client: c,
+		org:    org,
+	}, nil
 }
