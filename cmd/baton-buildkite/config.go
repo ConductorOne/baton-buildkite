@@ -6,10 +6,17 @@ import (
 )
 
 var (
+	BaseURLField = field.StringField(
+		"base-url",
+		field.WithDescription("Override the Buildkite API URL (for testing)"),
+	)
+
 	// ConfigurationFields defines the external configuration required for the
 	// connector to run. Note: these fields can be marked as optional or
 	// required.
-	ConfigurationFields = []field.SchemaField{}
+	ConfigurationFields = []field.SchemaField{
+		BaseURLField,
+	}
 
 	// FieldRelationships defines relationships between the fields listed in
 	// ConfigurationFields that can be automatically validated. For example, a

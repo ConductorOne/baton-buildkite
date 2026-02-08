@@ -9,7 +9,9 @@ import (
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 )
 
-type Connector struct{}
+type Connector struct {
+	baseURL string
+}
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
 func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
@@ -39,6 +41,8 @@ func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context) (*Connector, error) {
-	return &Connector{}, nil
+func New(ctx context.Context, baseURL string) (*Connector, error) {
+	return &Connector{
+		baseURL: baseURL,
+	}, nil
 }
