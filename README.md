@@ -1,6 +1,6 @@
 ![Baton Logo](./docs/images/baton-logo.png)
 
-# `baton-buildkite` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-buildkite.svg)](https://pkg.go.dev/github.com/conductorone/baton-buildkite) ![main ci](https://github.com/conductorone/baton-buildkite/actions/workflows/main.yaml/badge.svg)
+# `baton-buildkite` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-buildkite.svg)](https://pkg.go.dev/github.com/conductorone/baton-buildkite) ![ci](https://github.com/conductorone/baton-buildkite/actions/workflows/ci.yaml/badge.svg)
 
 `baton-buildkite` is a connector for built using the [Baton SDK](https://github.com/conductorone/baton-sdk).
 
