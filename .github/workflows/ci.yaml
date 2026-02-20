@@ -14,10 +14,5 @@ jobs:
           go-version-file: go.mod
       - name: Build baton-buildkite
         run: go build ./cmd/baton-buildkite
-      # - name: Grant/revoke
-      #   uses: ConductorOne/github-workflows/actions/sync-test@v2
-      #   with:
-      #     connector: ./baton-github-enterprise
-      #     baton-entitlement: 'repository:1155802013:maintain'
-      #     baton-principal: '203686556'
-      #     baton-principal-type: 'user'
+      - name: Run baton-buildkite
+        run: ./baton-buildkite
