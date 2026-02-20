@@ -4,16 +4,18 @@ import (
 	"context"
 	"io"
 
+	"github.com/conductorone/baton-buildkite/pkg/config"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/annotations"
+	"github.com/conductorone/baton-sdk/pkg/cli"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 )
 
 type Connector struct{}
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
-func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
-	return []connectorbuilder.ResourceSyncer{
+func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncerV2 {
+	return []connectorbuilder.ResourceSyncerV2{
 		newUserBuilder(),
 	}
 }
@@ -39,6 +41,6 @@ func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context) (*Connector, error) {
-	return &Connector{}, nil
+func New(ctx context.Context, cfg *config.Buildkite, cliOpts *cli.ConnectorOpts) (connectorbuilder.ConnectorBuilderV2, []connectorbuilder.Opt, error) {
+	return &Connector{}, nil, nil
 }

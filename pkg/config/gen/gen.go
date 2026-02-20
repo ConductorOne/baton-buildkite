@@ -1,7 +1,7 @@
 package main
 
 import (
-	cfg "github.com/conductorone/baton-github/pkg/config"
+	cfg "github.com/conductorone/baton-buildkite/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/config"
 )
 
