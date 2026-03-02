@@ -103,7 +103,10 @@ func (t *teamBuilder) Grants(ctx context.Context, resource *v2.Resource, opts re
 	})
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
-			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable, resp.Response, err)
+			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable,
+				resp.Response,
+				fmt.Errorf("baton-buildkite: failed to list team members: %w", err),
+			)
 		}
 		return nil, nil, fmt.Errorf("baton-buildkite: failed to list team members: %w", err)
 	}
