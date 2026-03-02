@@ -9,8 +9,10 @@ import (
 
 	"github.com/buildkite/go-buildkite/v4"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
+	"github.com/conductorone/baton-sdk/pkg/uhttp"
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/google/go-querystring/query"
+	"google.golang.org/grpc/codes"
 )
 
 var listUsersUrl = "v2/organizations/%s/members"
@@ -50,6 +52,9 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	var bUsers []*buildkite.User
 	resp, err := o.client.Do(req, &bUsers)
 	if err != nil {
+		if resp != nil && resp.StatusCode == 429 {
+			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable, resp.Response, err)
+		}
 		return nil, nil, err
 	}
 

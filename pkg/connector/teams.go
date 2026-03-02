@@ -3,11 +3,16 @@ package connector
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/buildkite/go-buildkite/v4"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
+	"github.com/conductorone/baton-sdk/pkg/types/entitlement"
+	"github.com/conductorone/baton-sdk/pkg/types/grant"
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
+	"github.com/conductorone/baton-sdk/pkg/uhttp"
+	"google.golang.org/grpc/codes"
 )
 
 type teamBuilder struct {
@@ -32,6 +37,9 @@ func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 		},
 	})
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
+			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable, resp.Response, err)
+		}
 		return nil, nil, fmt.Errorf("baton-buildkite: failed to list teams: %w", err)
 	}
 
@@ -59,14 +67,67 @@ func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	}, nil
 }
 
-// Entitlements always returns an empty slice for teams.
+// Entitlements returns the member and maintainer entitlements for the team.
 func (t *teamBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ resourceSdk.SyncOpAttrs) ([]*v2.Entitlement, *resourceSdk.SyncOpResults, error) {
-	return nil, nil, nil
+	return []*v2.Entitlement{
+		entitlement.NewAssignmentEntitlement(
+			resource,
+			"member",
+			entitlement.WithDisplayName("Member"),
+			entitlement.WithDescription(fmt.Sprintf("Member of %s team in Buildkite", resource.DisplayName)),
+			entitlement.WithGrantableTo(userResourceType),
+		),
+		entitlement.NewAssignmentEntitlement(
+			resource,
+			"maintainer",
+			entitlement.WithDisplayName("Maintainer"),
+			entitlement.WithDescription(fmt.Sprintf("Maintainer of %s team in Buildkite", resource.DisplayName)),
+			entitlement.WithGrantableTo(userResourceType),
+		),
+	}, &resourceSdk.SyncOpResults{}, nil
 }
 
-// Grants always returns an empty slice for teams.
+// Grants returns all users who are members of this team with their roles.
 func (t *teamBuilder) Grants(ctx context.Context, resource *v2.Resource, opts resourceSdk.SyncOpAttrs) ([]*v2.Grant, *resourceSdk.SyncOpResults, error) {
-	return nil, nil, nil
+	teamID := resource.Id.Resource
+
+	page, err := pageTokenToInt(opts.PageToken.Token)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	members, resp, err := t.client.TeamMember.ListTeamMembers(ctx, t.org, teamID, &buildkite.TeamMembersListOptions{
+		ListOptions: buildkite.ListOptions{
+			Page: page,
+		},
+	})
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
+			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable, resp.Response, err)
+		}
+		return nil, nil, fmt.Errorf("baton-buildkite: failed to list team members: %w", err)
+	}
+
+	grants := make([]*v2.Grant, 0, len(members))
+	for _, member := range members {
+		grants = append(grants, grant.NewGrant(
+			resource,
+			member.Role,
+			&v2.ResourceId{
+				ResourceType: userResourceType.Id,
+				Resource:     member.ID,
+			},
+		))
+	}
+
+	nextPageToken := strconv.Itoa(resp.NextPage)
+	if resp.NextPage == 0 {
+		nextPageToken = ""
+	}
+
+	return grants, &resourceSdk.SyncOpResults{
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 func newTeamBuilder(client *buildkite.Client, org string) *teamBuilder {
