@@ -3,8 +3,10 @@ module github.com/conductorone/baton-buildkite
 go 1.25.2
 
 require (
+	github.com/buildkite/go-buildkite/v4 v4.15.0
 	github.com/conductorone/baton-sdk v0.7.30
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
+	github.com/google/go-querystring v1.0.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.23
 )
 
@@ -36,6 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.6 // indirect
 	github.com/aws/smithy-go v1.24.0 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
+	github.com/cenkalti/backoff v1.1.1-0.20171020064038-309aa717adbf // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/conductorone/dpop v0.2.4 // indirect
