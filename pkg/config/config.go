@@ -17,6 +17,7 @@ var (
 		"organization",
 		field.WithDisplayName("Organization"),
 		field.WithDescription("Buildkite Organization"),
+		field.WithRequired(true),
 	)
 )
 
