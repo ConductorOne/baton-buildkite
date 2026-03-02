@@ -3,14 +3,15 @@ package connector
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
 
 	"github.com/buildkite/go-buildkite/v4"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/uhttp"
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
+	"github.com/conductorone/baton-sdk/pkg/uhttp"
 	"github.com/google/go-querystring/query"
 	"google.golang.org/grpc/codes"
 )
@@ -52,8 +53,11 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	var bUsers []*buildkite.User
 	resp, err := o.client.Do(req, &bUsers)
 	if err != nil {
-		if resp != nil && resp.StatusCode == 429 {
-			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable, resp.Response, err)
+		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
+			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable,
+				resp.Response,
+				fmt.Errorf("baton-buildkite: failed to list users: %w", err),
+			)
 		}
 		return nil, nil, err
 	}
@@ -64,7 +68,11 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 			user.Name,
 			userResourceType,
 			user.ID,
-			[]resourceSdk.UserTraitOption{resourceSdk.WithEmail(user.Email, true)},
+			[]resourceSdk.UserTraitOption{
+				resourceSdk.WithEmail(user.Email, true),
+				resourceSdk.WithUserLogin(user.Email),
+				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
+			},
 		)
 		if err != nil {
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)
