@@ -54,6 +54,10 @@ func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 		resources = append(resources, resource)
 	}
 
+	if resp == nil {
+		return resources, nil, nil
+	}
+
 	nextPageToken := strconv.Itoa(resp.NextPage)
 	if resp.NextPage == 0 {
 		nextPageToken = ""

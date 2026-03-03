@@ -13,7 +13,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-var listUsersUrl = "v2/organizations/%s/members"
+const listUsersURL = "v2/organizations/%s/members"
 
 type userBuilder struct {
 	client *buildkite.Client
@@ -34,7 +34,7 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 
 	// TODO. (Ben.Su) https://github.com/buildkite/go-buildkite/pull/282.
 	// We should use this built-in function once this feature is in.
-	u := fmt.Sprintf(listUsersUrl, o.org)
+	u := fmt.Sprintf(listUsersURL, o.org)
 	u, err = addOptions(u, buildkite.ListOptions{
 		Page: page,
 	})
@@ -44,7 +44,7 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 
 	req, err := o.client.NewRequest(ctx, "GET", u, nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("baton-buildkite: failed to create request: %w", err)
 	}
 
 	var bUsers []*buildkite.User
@@ -69,6 +69,10 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)
 		}
 		users = append(users, userResource)
+	}
+
+	if resp == nil {
+		return users, nil, nil
 	}
 
 	nextPageToken := strconv.Itoa(resp.NextPage)
