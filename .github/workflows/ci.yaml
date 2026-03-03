@@ -4,7 +4,8 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     env:
-      BATON_API_TOKEN: test 
+      BATON_API_TOKEN: ${{ secrets.TOKEN }} 
+      BATON_ORGANIZATION: ${{ vars.ORGANIZATION }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
