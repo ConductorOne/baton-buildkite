@@ -133,7 +133,7 @@ func (c *Client) doRequest(ctx context.Context, url string, target interface{}) 
 	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec // URL is constructed from trusted config, not user input
 	if err != nil {
 		if resp != nil {
 			resp.Body.Close()

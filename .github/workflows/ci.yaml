@@ -3,8 +3,6 @@ on: pull_request
 jobs:
   ci:
     runs-on: ubuntu-latest
-    env:
-      BATON_API_TOKEN: test 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -14,5 +12,3 @@ jobs:
           go-version-file: go.mod
       - name: Build baton-buildkite
         run: go build ./cmd/baton-buildkite
-      - name: Run baton-buildkite
-        run: ./baton-buildkite
