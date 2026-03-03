@@ -14,5 +14,11 @@ var version = "dev"
 
 func main() {
 	ctx := context.Background()
-	config.RunConnector(ctx, "baton-buildkite", version, cfg.Config, connector.New, connectorrunner.WithDefaultCapabilitiesConnectorBuilderV2(&connector.Connector{}))
+	config.RunConnector(ctx,
+		"baton-buildkite",
+		version,
+		cfg.Config,
+		connector.New,
+		connectorrunner.WithDefaultCapabilitiesConnectorBuilderV2(&connector.Connector{}),
+	)
 }
