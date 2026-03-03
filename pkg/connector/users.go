@@ -3,7 +3,6 @@ package connector
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -11,9 +10,7 @@ import (
 	"github.com/buildkite/go-buildkite/v4"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
-	"github.com/conductorone/baton-sdk/pkg/uhttp"
 	"github.com/google/go-querystring/query"
-	"google.golang.org/grpc/codes"
 )
 
 var listUsersUrl = "v2/organizations/%s/members"
@@ -53,13 +50,7 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	var bUsers []*buildkite.User
 	resp, err := o.client.Do(req, &bUsers)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
-			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable,
-				resp.Response,
-				fmt.Errorf("baton-buildkite: failed to list users: %w", err),
-			)
-		}
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("baton-buildkite: failed to list users: %w", err)
 	}
 
 	users := make([]*v2.Resource, 0, len(bUsers))
