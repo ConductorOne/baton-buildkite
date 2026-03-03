@@ -46,6 +46,7 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 				resourceSdk.WithEmail(m.Email, true),
 				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
 			},
+			resourceSdk.WithExternalID(&v2.ExternalId{Id: m.ID}),
 		)
 		if err != nil {
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)

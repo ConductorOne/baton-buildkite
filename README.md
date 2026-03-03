@@ -2,9 +2,9 @@
 
 # `baton-buildkite` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-buildkite.svg)](https://pkg.go.dev/github.com/conductorone/baton-buildkite) ![ci](https://github.com/conductorone/baton-buildkite/actions/workflows/ci.yaml/badge.svg)
 
-`baton-buildkite` is a connector for built using the [Baton SDK](https://github.com/conductorone/baton-sdk).
+`baton-buildkite` is a connector for Buildkite built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It syncs users and teams from your Buildkite organization into ConductorOne for access reviews and just-in-time access requests.
 
-Check out [Baton](https://github.com/conductorone/baton) to learn more the project in general.
+Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
 
 # Getting Started
 
@@ -12,14 +12,15 @@ Check out [Baton](https://github.com/conductorone/baton) to learn more the proje
 
 ```
 brew install conductorone/baton/baton conductorone/baton/baton-buildkite
-baton-buildkite
+
+BATON_API_TOKEN=your-buildkite-api-token BATON_ORGANIZATION=your-org-slug baton-buildkite
 baton resources
 ```
 
 ## docker
 
 ```
-docker run --rm -v $(pwd):/out -e BATON_DOMAIN_URL=domain_url -e BATON_API_KEY=apiKey -e BATON_USERNAME=username ghcr.io/conductorone/baton-buildkite:latest -f "/out/sync.c1z"
+docker run --rm -v $(pwd):/out -e BATON_API_TOKEN=your-buildkite-api-token -e BATON_ORGANIZATION=your-org-slug ghcr.io/conductorone/baton-buildkite:latest -f "/out/sync.c1z"
 docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c1z" resources
 ```
 
@@ -29,7 +30,7 @@ docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c
 go install github.com/conductorone/baton/cmd/baton@main
 go install github.com/conductorone/baton-buildkite/cmd/baton-buildkite@main
 
-baton-buildkite
+BATON_API_TOKEN=your-buildkite-api-token BATON_ORGANIZATION=your-org-slug baton-buildkite
 
 baton resources
 ```
@@ -38,6 +39,7 @@ baton resources
 
 `baton-buildkite` will pull down information about the following resources:
 - Users
+- Teams
 
 # Contributing, Support and Issues
 
