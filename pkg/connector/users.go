@@ -39,11 +39,11 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	var resources []*v2.Resource
 	for _, m := range members {
 		r, err := resourceSdk.NewUserResource(
-			m.User.Name,
+			m.Name,
 			userResourceType,
-			m.User.ID,
+			m.ID,
 			[]resourceSdk.UserTraitOption{
-				resourceSdk.WithEmail(m.User.Email, true),
+				resourceSdk.WithEmail(m.Email, true),
 				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
 			},
 		)

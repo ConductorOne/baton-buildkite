@@ -30,17 +30,10 @@ type Organization struct {
 	Slug string `json:"slug"`
 }
 
-type User struct {
+type Member struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
-}
-
-type Member struct {
-	ID        string `json:"id"`
-	Role      string `json:"role"`
-	CreatedAt string `json:"created_at"`
-	User      User   `json:"user"`
 }
 
 type Team struct {
@@ -49,7 +42,7 @@ type Team struct {
 	Slug          string `json:"slug"`
 	Description   string `json:"description"`
 	Privacy       string `json:"privacy"`
-	IsDefaultTeam bool   `json:"is_default_team"`
+	IsDefaultTeam bool   `json:"default"`
 	CreatedAt     string `json:"created_at"`
 }
 
