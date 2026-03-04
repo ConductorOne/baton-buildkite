@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/conductorone/baton-buildkite/pkg/client"
+	"github.com/buildkite/go-buildkite/v4"
 	"github.com/conductorone/baton-buildkite/pkg/config"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/annotations"
@@ -14,14 +14,15 @@ import (
 )
 
 type Connector struct {
-	client *client.Client
+	client *buildkite.Client
+	org    string
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
 func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncerV2 {
 	return []connectorbuilder.ResourceSyncerV2{
-		newUserBuilder(d.client),
-		newTeamBuilder(d.client),
+		newUserBuilder(d.client, d.org),
+		newTeamBuilder(d.client, d.org),
 	}
 }
 
@@ -42,7 +43,7 @@ func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error)
 // Validate is called to ensure that the connector is properly configured. It should exercise any API credentials
 // to be sure that they are valid.
 func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, error) {
-	_, err := d.client.ListOrganizations(ctx)
+	_, _, err := d.client.Organizations.List(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("baton-buildkite: failed to validate credentials: %w", err)
 	}
@@ -51,10 +52,13 @@ func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 
 // New returns a new instance of the connector.
 func New(ctx context.Context, cfg *config.Buildkite, cliOpts *cli.ConnectorOpts) (connectorbuilder.ConnectorBuilderV2, []connectorbuilder.Opt, error) {
-	c, err := client.New(ctx, cfg.ApiToken, cfg.Organization, "")
+	c, err := buildkite.NewOpts(buildkite.WithTokenAuth(cfg.ApiToken))
 	if err != nil {
 		return nil, nil, fmt.Errorf("baton-buildkite: failed to create client: %w", err)
 	}
 
-	return &Connector{client: c}, nil, nil
+	return &Connector{
+		client: c,
+		org:    cfg.Organization,
+	}, nil, nil
 }

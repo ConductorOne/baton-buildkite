@@ -3,17 +3,21 @@ package connector
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
 
-	"github.com/conductorone/baton-buildkite/pkg/client"
+	"github.com/buildkite/go-buildkite/v4"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/pagination"
-	sdkEntitlement "github.com/conductorone/baton-sdk/pkg/types/entitlement"
-	sdkGrant "github.com/conductorone/baton-sdk/pkg/types/grant"
+	"github.com/conductorone/baton-sdk/pkg/types/entitlement"
+	"github.com/conductorone/baton-sdk/pkg/types/grant"
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
+	"github.com/conductorone/baton-sdk/pkg/uhttp"
+	"google.golang.org/grpc/codes"
 )
 
 type teamBuilder struct {
-	client *client.Client
+	client *buildkite.Client
+	org    string
 }
 
 func (t *teamBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
@@ -21,104 +25,117 @@ func (t *teamBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 }
 
 func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, opts resourceSdk.SyncOpAttrs) ([]*v2.Resource, *resourceSdk.SyncOpResults, error) {
-	var bag pagination.Bag
-	err := bag.Unmarshal(opts.PageToken.Token)
+	page, err := pageTokenToInt(opts.PageToken.Token)
 	if err != nil {
-		return nil, nil, fmt.Errorf("baton-buildkite: failed to unmarshal page token: %w", err)
+		return nil, nil, err
 	}
 
-	if bag.Current() == nil {
-		bag.Push(pagination.PageState{
-			ResourceTypeID: teamResourceType.Id,
-		})
-	}
-
-	teams, nextPageURL, err := t.client.ListTeams(ctx, bag.PageToken())
+	teams, resp, err := t.client.Teams.List(ctx, t.org, &buildkite.TeamsListOptions{
+		ListOptions: buildkite.ListOptions{
+			Page: page,
+		},
+	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("baton-buildkite: failed to list teams: %w", err)
 	}
 
-	var resources []*v2.Resource
+	resources := make([]*v2.Resource, 0, len(teams))
 	for _, team := range teams {
-		profile := map[string]interface{}{
-			"description":     team.Description,
-			"privacy":         team.Privacy,
-			"slug":            team.Slug,
-			"is_default_team": team.IsDefaultTeam,
-		}
-
-		r, err := resourceSdk.NewGroupResource(
+		resource, err := resourceSdk.NewGroupResource(
 			team.Name,
 			teamResourceType,
 			team.ID,
-			[]resourceSdk.GroupTraitOption{
-				resourceSdk.WithGroupProfile(profile),
-			},
+			[]resourceSdk.GroupTraitOption{},
 		)
 		if err != nil {
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create team resource: %w", err)
 		}
-		resources = append(resources, r)
+		resources = append(resources, resource)
 	}
 
-	nextPage, err := bag.NextToken(nextPageURL)
-	if err != nil {
-		return nil, nil, fmt.Errorf("baton-buildkite: failed to create next page token: %w", err)
+	if resp == nil {
+		return resources, nil, nil
 	}
 
-	return resources, &resourceSdk.SyncOpResults{NextPageToken: nextPage}, nil
+	nextPageToken := ""
+	if resp.NextPage != 0 {
+		nextPageToken = strconv.Itoa(resp.NextPage)
+	}
+
+	return resources, &resourceSdk.SyncOpResults{
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
+// Entitlements returns the member and maintainer entitlements for the team.
 func (t *teamBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ resourceSdk.SyncOpAttrs) ([]*v2.Entitlement, *resourceSdk.SyncOpResults, error) {
-	entitlements := []*v2.Entitlement{
-		sdkEntitlement.NewAssignmentEntitlement(
+	return []*v2.Entitlement{
+		entitlement.NewAssignmentEntitlement(
 			resource,
 			"member",
-			sdkEntitlement.WithDisplayName(fmt.Sprintf("%s Team Member", resource.DisplayName)),
-			sdkEntitlement.WithDescription(fmt.Sprintf("Member of the %s team in Buildkite", resource.DisplayName)),
-			sdkEntitlement.WithGrantableTo(userResourceType),
+			entitlement.WithDisplayName("Member"),
+			entitlement.WithDescription(fmt.Sprintf("Member of %s team in Buildkite", resource.DisplayName)),
+			entitlement.WithGrantableTo(userResourceType),
 		),
-	}
-
-	return entitlements, nil, nil
+		entitlement.NewAssignmentEntitlement(
+			resource,
+			"maintainer",
+			entitlement.WithDisplayName("Maintainer"),
+			entitlement.WithDescription(fmt.Sprintf("Maintainer of %s team in Buildkite", resource.DisplayName)),
+			entitlement.WithGrantableTo(userResourceType),
+		),
+	}, &resourceSdk.SyncOpResults{}, nil
 }
 
+// Grants returns all users who are members of this team with their roles.
 func (t *teamBuilder) Grants(ctx context.Context, resource *v2.Resource, opts resourceSdk.SyncOpAttrs) ([]*v2.Grant, *resourceSdk.SyncOpResults, error) {
-	var bag pagination.Bag
-	err := bag.Unmarshal(opts.PageToken.Token)
+	teamID := resource.Id.Resource
+
+	page, err := pageTokenToInt(opts.PageToken.Token)
 	if err != nil {
-		return nil, nil, fmt.Errorf("baton-buildkite: failed to unmarshal page token: %w", err)
+		return nil, nil, err
 	}
 
-	if bag.Current() == nil {
-		bag.Push(pagination.PageState{
-			ResourceTypeID: teamResourceType.Id,
-			ResourceID:     resource.Id.Resource,
-		})
-	}
-
-	teamMembers, nextPageURL, err := t.client.ListTeamMembers(ctx, resource.Id.Resource, bag.PageToken())
+	members, resp, err := t.client.TeamMember.ListTeamMembers(ctx, t.org, teamID, &buildkite.TeamMembersListOptions{
+		ListOptions: buildkite.ListOptions{
+			Page: page,
+		},
+	})
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
+			return nil, nil, uhttp.WrapErrorsWithRateLimitInfo(codes.Unavailable,
+				resp.Response,
+				fmt.Errorf("baton-buildkite: failed to list team members: %w", err),
+			)
+		}
 		return nil, nil, fmt.Errorf("baton-buildkite: failed to list team members: %w", err)
 	}
 
-	var grants []*v2.Grant
-	for _, m := range teamMembers {
-		principalID := &v2.ResourceId{
-			ResourceType: userResourceType.Id,
-			Resource:     m.UserID,
-		}
-		grants = append(grants, sdkGrant.NewGrant(resource, "member", principalID))
+	grants := make([]*v2.Grant, 0, len(members))
+	for _, member := range members {
+		grants = append(grants, grant.NewGrant(
+			resource,
+			member.Role,
+			&v2.ResourceId{
+				ResourceType: userResourceType.Id,
+				Resource:     member.ID,
+			},
+		))
 	}
 
-	nextPage, err := bag.NextToken(nextPageURL)
-	if err != nil {
-		return nil, nil, fmt.Errorf("baton-buildkite: failed to create next page token: %w", err)
+	nextPageToken := ""
+	if resp.NextPage != 0 {
+		nextPageToken = strconv.Itoa(resp.NextPage)
 	}
 
-	return grants, &resourceSdk.SyncOpResults{NextPageToken: nextPage}, nil
+	return grants, &resourceSdk.SyncOpResults{
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
-func newTeamBuilder(c *client.Client) *teamBuilder {
-	return &teamBuilder{client: c}
+func newTeamBuilder(client *buildkite.Client, org string) *teamBuilder {
+	return &teamBuilder{
+		client: client,
+		org:    org,
+	}
 }
