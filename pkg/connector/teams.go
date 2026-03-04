@@ -41,6 +41,10 @@ func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 
 	resources := make([]*v2.Resource, 0, len(teams))
 	for _, team := range teams {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, fmt.Errorf("baton-buildkite: teams sync canceled: %w", err)
+		}
+
 		resource, err := resourceSdk.NewGroupResource(
 			team.Name,
 			teamResourceType,
@@ -51,10 +55,6 @@ func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create team resource: %w", err)
 		}
 		resources = append(resources, resource)
-	}
-
-	if resp == nil {
-		return resources, nil, nil
 	}
 
 	nextPageToken := ""

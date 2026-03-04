@@ -18,6 +18,11 @@ type Connector struct {
 	org    string
 }
 
+// Close releases any resources held by the connector.
+func (d *Connector) Close() error {
+	return nil
+}
+
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
 func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncerV2 {
 	return []connectorbuilder.ResourceSyncerV2{

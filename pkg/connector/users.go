@@ -36,6 +36,10 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 
 	users := make([]*v2.Resource, 0, len(bMembers))
 	for _, member := range bMembers {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, fmt.Errorf("baton-buildkite: users sync canceled: %w", err)
+		}
+
 		userResource, err := resourceSdk.NewUserResource(
 			member.Name,
 			userResourceType,
@@ -51,10 +55,6 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)
 		}
 		users = append(users, userResource)
-	}
-
-	if resp == nil {
-		return users, nil, nil
 	}
 
 	nextPageToken := ""
