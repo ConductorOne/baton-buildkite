@@ -43,9 +43,9 @@ func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error)
 // Validate is called to ensure that the connector is properly configured. It should exercise any API credentials
 // to be sure that they are valid.
 func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, error) {
-	_, _, err := d.client.Organizations.List(ctx, nil)
+	_, _, err := d.client.Organizations.Get(ctx, d.org)
 	if err != nil {
-		return nil, fmt.Errorf("baton-buildkite: failed to validate credentials: %w", err)
+		return nil, fmt.Errorf("baton-buildkite: failed to validate credentials for org %q: %w", d.org, err)
 	}
 	return nil, nil
 }

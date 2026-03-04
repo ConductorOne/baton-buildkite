@@ -10,8 +10,6 @@ import (
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
 )
 
-const listUsersURL = "v2/organizations/%s/members"
-
 type userBuilder struct {
 	client *buildkite.Client
 	org    string
@@ -27,39 +25,27 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 		return nil, nil, err
 	}
 
-	// go-buildkite doesn't have a built-in method for org members yet.
-	// See: https://github.com/buildkite/go-buildkite/pull/282
-	u := fmt.Sprintf(listUsersURL, o.org)
-	u, err = addOptions(u, buildkite.ListOptions{
-		Page: page,
+	bMembers, resp, err := o.client.Members.List(ctx, o.org, &buildkite.MemberListOptions{
+		ListOptions: buildkite.ListOptions{
+			Page: page,
+		},
 	})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := o.client.NewRequest(ctx, "GET", u, nil)
-	if err != nil {
-		return nil, nil, fmt.Errorf("baton-buildkite: failed to create request: %w", err)
-	}
-
-	var bUsers []*buildkite.User
-	resp, err := o.client.Do(req, &bUsers)
 	if err != nil {
 		return nil, nil, fmt.Errorf("baton-buildkite: failed to list users: %w", err)
 	}
 
-	users := make([]*v2.Resource, 0, len(bUsers))
-	for _, user := range bUsers {
+	users := make([]*v2.Resource, 0, len(bMembers))
+	for _, member := range bMembers {
 		userResource, err := resourceSdk.NewUserResource(
-			user.Name,
+			member.Name,
 			userResourceType,
-			user.ID,
+			member.UUID,
 			[]resourceSdk.UserTraitOption{
-				resourceSdk.WithEmail(user.Email, true),
-				resourceSdk.WithUserLogin(user.Email),
+				resourceSdk.WithEmail(member.Email, true),
+				resourceSdk.WithUserLogin(member.Email),
 				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
 			},
-			resourceSdk.WithExternalID(&v2.ExternalId{Id: user.ID}),
+			resourceSdk.WithExternalID(&v2.ExternalId{Id: member.UUID}),
 		)
 		if err != nil {
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)
