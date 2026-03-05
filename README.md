@@ -10,7 +10,7 @@ Check out [Baton](https://github.com/conductorone/baton) to learn more about the
 
 ## brew
 
-```
+```bash
 brew install conductorone/baton/baton conductorone/baton/baton-buildkite
 
 BATON_API_TOKEN=your-buildkite-api-token BATON_ORGANIZATION=your-org-slug baton-buildkite
@@ -19,14 +19,14 @@ baton resources
 
 ## docker
 
-```
+```bash
 docker run --rm -v $(pwd):/out -e BATON_API_TOKEN=your-buildkite-api-token -e BATON_ORGANIZATION=your-org-slug ghcr.io/conductorone/baton-buildkite:latest -f "/out/sync.c1z"
 docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c1z" resources
 ```
 
 ## source
 
-```
+```bash
 go install github.com/conductorone/baton/cmd/baton@main
 go install github.com/conductorone/baton-buildkite/cmd/baton-buildkite@main
 

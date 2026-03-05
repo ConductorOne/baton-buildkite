@@ -16,6 +16,9 @@ func pageTokenToInt(token string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("baton-buildkite: invalid page token: %w", err)
 	}
+	if page < 0 {
+		return 0, fmt.Errorf("baton-buildkite: invalid page token: page must be >= 0")
+	}
 
 	return page, nil
 }

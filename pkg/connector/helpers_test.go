@@ -39,9 +39,10 @@ func TestPageTokenToInt(t *testing.T) {
 			want:  9999,
 		},
 		{
-			name:  "negative number",
-			token: "-1",
-			want:  -1,
+			name:      "negative number",
+			token:     "-1",
+			want:      0,
+			wantError: "baton-buildkite: invalid page token: page must be >= 0",
 		},
 		{
 			name:      "invalid non-numeric token",
