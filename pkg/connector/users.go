@@ -50,11 +50,16 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
 			},
 			resourceSdk.WithExternalID(&v2.ExternalId{Id: member.UUID}),
+			resourceSdk.WithAnnotation(&v2.SkipEntitlementsAndGrants{}),
 		)
 		if err != nil {
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)
 		}
 		users = append(users, userResource)
+	}
+
+	if resp == nil {
+		return users, nil, nil
 	}
 
 	nextPageToken := ""

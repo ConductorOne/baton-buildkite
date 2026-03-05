@@ -50,11 +50,16 @@ func (t *teamBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 			teamResourceType,
 			team.ID,
 			[]resourceSdk.GroupTraitOption{},
+			resourceSdk.WithExternalID(&v2.ExternalId{Id: team.ID}),
 		)
 		if err != nil {
 			return nil, nil, fmt.Errorf("baton-buildkite: failed to create team resource: %w", err)
 		}
 		resources = append(resources, resource)
+	}
+
+	if resp == nil {
+		return resources, nil, nil
 	}
 
 	nextPageToken := ""
@@ -113,6 +118,9 @@ func (t *teamBuilder) Grants(ctx context.Context, resource *v2.Resource, opts re
 
 	grants := make([]*v2.Grant, 0, len(members))
 	for _, member := range members {
+		// TeamMember.ID maps to json:"user_id" from the team members API.
+		// This matches Member.UUID (json:"id") from the org members API —
+		// both are the Buildkite user UUID.
 		grants = append(grants, grant.NewGrant(
 			resource,
 			member.Role,
@@ -121,6 +129,10 @@ func (t *teamBuilder) Grants(ctx context.Context, resource *v2.Resource, opts re
 				Resource:     member.ID,
 			},
 		))
+	}
+
+	if resp == nil {
+		return grants, nil, nil
 	}
 
 	nextPageToken := ""
