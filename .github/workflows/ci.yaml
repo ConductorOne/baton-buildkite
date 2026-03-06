@@ -15,5 +15,3 @@ jobs:
           go-version-file: go.mod
       - name: Build baton-buildkite
         run: go build ./cmd/baton-buildkite
-      - name: Run baton-buildkite
-        run: go build ./cmd/baton-buildkite
