@@ -4,9 +4,8 @@ go 1.25.2
 
 require (
 	github.com/buildkite/go-buildkite/v4 v4.16.0
-	github.com/conductorone/baton-sdk v0.8.3
+	github.com/conductorone/baton-sdk v0.8.4
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
-	github.com/google/go-querystring v1.2.0
 	github.com/quasilyte/go-ruleguard/dsl v0.3.23
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.79.1
@@ -60,6 +59,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
