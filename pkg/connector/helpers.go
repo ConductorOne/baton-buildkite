@@ -1,0 +1,24 @@
+package connector
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// pageTokenToInt converts a string page token to an integer page number.
+// If the token is empty, it returns 0.
+func pageTokenToInt(token string) (int, error) {
+	if token == "" {
+		return 0, nil
+	}
+
+	page, err := strconv.Atoi(token)
+	if err != nil {
+		return 0, fmt.Errorf("baton-buildkite: invalid page token: %w", err)
+	}
+	if page < 0 {
+		return 0, fmt.Errorf("baton-buildkite: invalid page token: page must be >= 0")
+	}
+
+	return page, nil
+}

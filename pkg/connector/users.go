@@ -2,21 +2,74 @@ package connector
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
+	"github.com/buildkite/go-buildkite/v4"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	resourceSdk "github.com/conductorone/baton-sdk/pkg/types/resource"
 )
 
-type userBuilder struct{}
+type userBuilder struct {
+	client *buildkite.Client
+	org    string
+}
 
 func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 	return userResourceType
 }
 
-// List returns all the users from the database as resource objects.
-// Users include a UserTrait because they are the 'shape' of a standard user.
 func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, opts resourceSdk.SyncOpAttrs) ([]*v2.Resource, *resourceSdk.SyncOpResults, error) {
-	return nil, nil, nil
+	page, err := pageTokenToInt(opts.PageToken.Token)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	bMembers, resp, err := o.client.Members.List(ctx, o.org, &buildkite.MemberListOptions{
+		ListOptions: buildkite.ListOptions{
+			Page: page,
+		},
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("baton-buildkite: failed to list users: %w", err)
+	}
+
+	users := make([]*v2.Resource, 0, len(bMembers))
+	for _, member := range bMembers {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, fmt.Errorf("baton-buildkite: users sync canceled: %w", err)
+		}
+
+		userResource, err := resourceSdk.NewUserResource(
+			member.Name,
+			userResourceType,
+			member.UUID,
+			[]resourceSdk.UserTraitOption{
+				resourceSdk.WithEmail(member.Email, true),
+				resourceSdk.WithUserLogin(member.Email),
+				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
+			},
+			resourceSdk.WithExternalID(&v2.ExternalId{Id: member.UUID}),
+			resourceSdk.WithAnnotation(&v2.SkipEntitlementsAndGrants{}),
+		)
+		if err != nil {
+			return nil, nil, fmt.Errorf("baton-buildkite: failed to create user resource: %w", err)
+		}
+		users = append(users, userResource)
+	}
+
+	if resp == nil {
+		return users, nil, nil
+	}
+
+	nextPageToken := ""
+	if resp.NextPage != 0 {
+		nextPageToken = strconv.Itoa(resp.NextPage)
+	}
+
+	return users, &resourceSdk.SyncOpResults{
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 // Entitlements always returns an empty slice for users.
@@ -29,6 +82,9 @@ func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, opts re
 	return nil, nil, nil
 }
 
-func newUserBuilder() *userBuilder {
-	return &userBuilder{}
+func newUserBuilder(client *buildkite.Client, org string) *userBuilder {
+	return &userBuilder{
+		client: client,
+		org:    org,
+	}
 }

@@ -168,13 +168,20 @@ github.com/aws/smithy-go/waiter
 # github.com/benbjohnson/clock v1.3.5
 ## explicit; go 1.15
 github.com/benbjohnson/clock
+# github.com/buildkite/go-buildkite/v4 v4.16.0
+## explicit; go 1.25
+github.com/buildkite/go-buildkite/v4
+github.com/buildkite/go-buildkite/v4/internal/bkmultipart
+# github.com/cenkalti/backoff v1.1.1-0.20171020064038-309aa717adbf
+## explicit
+github.com/cenkalti/backoff
 # github.com/cenkalti/backoff/v5 v5.0.3
 ## explicit; go 1.23
 github.com/cenkalti/backoff/v5
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/conductorone/baton-sdk v0.8.3
+# github.com/conductorone/baton-sdk v0.8.4
 ## explicit; go 1.25.2
 github.com/conductorone/baton-sdk/internal/connector
 github.com/conductorone/baton-sdk/pb/c1/c1z/v1
@@ -310,6 +317,9 @@ github.com/go-viper/mapstructure/v2/internal/errors
 ## explicit; go 1.17
 github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
+# github.com/google/go-querystring v1.2.0
+## explicit; go 1.13
+github.com/google/go-querystring/query
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
@@ -583,6 +593,7 @@ golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/exp/constraints
 # golang.org/x/net v0.50.0
 ## explicit; go 1.24.0
+golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
