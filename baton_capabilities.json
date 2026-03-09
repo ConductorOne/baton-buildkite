@@ -3,6 +3,19 @@
   "resourceTypeCapabilities": [
     {
       "resourceType": {
+        "id": "team",
+        "displayName": "Team",
+        "traits": [
+          "TRAIT_GROUP"
+        ]
+      },
+      "capabilities": [
+        "CAPABILITY_SYNC"
+      ],
+      "permissions": {}
+    },
+    {
+      "resourceType": {
         "id": "user",
         "displayName": "User",
         "traits": [

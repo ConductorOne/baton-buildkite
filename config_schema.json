@@ -108,7 +108,12 @@
       "name": "organization",
       "displayName": "Organization",
       "description": "Buildkite Organization",
-      "stringField": {}
+      "isRequired": true,
+      "stringField": {
+        "rules": {
+          "isRequired": true
+        }
+      }
     }
   ],
   "displayName": "Buildkite v2",
