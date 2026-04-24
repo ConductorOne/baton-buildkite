@@ -27,7 +27,8 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 
 	bMembers, resp, err := o.client.Members.List(ctx, o.org, &buildkite.MemberListOptions{
 		ListOptions: buildkite.ListOptions{
-			Page: page,
+			Page:    page,
+			PerPage: 10,
 		},
 	})
 	if err != nil {
