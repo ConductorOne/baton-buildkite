@@ -114,6 +114,13 @@ Follow these instructions to use the [Buildkite](https://github.com/conductorone
 
 When running in service mode on Kubernetes, a self-hosted connector maintains an ongoing connection with C1, automatically syncing and uploading data at regular intervals. This data is immediately available in the C1 UI for access reviews and access requests.
 
+
+### Resources
+
+* [Official download center](https://dist.conductorone.com/ConductorOne/baton-buildkite): For stable binaries (Windows/Linux/macOS) and container images.
+
+* [GitHub repository](https://github.com/conductorone/baton-buildkite): Access the source code, report issues, or contribute to the project.
+
 ### Step 1: Set up a new Buildkite connector
 
 <Steps>
@@ -196,7 +203,7 @@ spec:
     spec:
       containers:
       - name: baton-buildkite
-        image: ghcr.io/conductorone/baton-buildkite:latest
+        image: public.ecr.aws/conductorone/baton-buildkite:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: BATON_HOST_ID
@@ -220,4 +227,3 @@ spec:
 **Done.** Your Buildkite connector is now pulling access data into C1.
 </Tab>
 </Tabs>
-
