@@ -4,7 +4,7 @@ go 1.25.2
 
 require (
 	github.com/buildkite/go-buildkite/v4 v4.16.0
-	github.com/conductorone/baton-sdk v0.11.0
+	github.com/conductorone/baton-sdk v0.11.1
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/quasilyte/go-ruleguard/dsl v0.3.23
 	github.com/stretchr/testify v1.11.1
