@@ -47,8 +47,8 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 			[]resourceSdk.UserTraitOption{
 				resourceSdk.WithEmail(member.Email, true),
 				resourceSdk.WithUserLogin(member.Email),
-				resourceSdk.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
 			},
+			resourceSdk.WithResourceStatus(v2.Status_RESOURCE_STATUS_ENABLED, ""),
 			resourceSdk.WithExternalID(&v2.ExternalId{Id: member.UUID}),
 			resourceSdk.WithAnnotation(&v2.SkipEntitlementsAndGrants{}),
 		)
