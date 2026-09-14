@@ -20,7 +20,7 @@ baton resources
 ## docker
 
 ```bash
-docker run --rm -v $(pwd):/out -e BATON_API_TOKEN=your-buildkite-api-token -e BATON_ORGANIZATION=your-org-slug ghcr.io/conductorone/baton-buildkite:latest -f "/out/sync.c1z"
+docker run --rm -v $(pwd):/out -e BATON_API_TOKEN=your-buildkite-api-token -e BATON_ORGANIZATION=your-org-slug public.ecr.aws/conductorone/baton-buildkite:latest -f "/out/sync.c1z"
 docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c1z" resources
 ```
 
