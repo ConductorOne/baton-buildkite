@@ -1,4 +1,4 @@
-![Baton Logo](./docs/images/baton-logo.png)
+![Baton Logo](./baton-logo.png)
 
 # `baton-buildkite` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-buildkite.svg)](https://pkg.go.dev/github.com/conductorone/baton-buildkite) ![ci](https://github.com/conductorone/baton-buildkite/actions/workflows/ci.yaml/badge.svg)
 
